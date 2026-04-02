@@ -148,6 +148,17 @@ local RespawnButton = AdminTab:CreateButton({
         game:GetService("ReplicatedStorage").Modules.NetworkFramework.NetworkEvent:FireServer(unpack(args))
    end,
 })
+T2:CreateButton({
+    Name = "Emergency Reset (กลับจุดเกิด)",
+    Callback = function()
+        -- วาร์ปกลับไปจุดที่ปลอดภัย (ลองเช็คพิกัด Spawn จริงๆ อีกทีนะครับ)
+        plr.Character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0) 
+        
+        -- หรือใช้ระบบ Respawn ที่คุณมี
+        local args = {[1] = "fire", [3] = "Respawn"}
+        game:GetService("ReplicatedStorage").Modules.NetworkFramework.NetworkEvent:FireServer(unpack(args))
+    end
+})
 
 -- ==================== Teleports Tab ====================
 -- ใช้ไอคอน "map" (แผนที่) แทนอิโมจิ 🏝
@@ -179,5 +190,20 @@ local ButtonDestroy = MiscTab:CreateButton({
    Name = "Destroy GUI (ปิดสคริปต์)",
    Callback = function()
         Rayfield:Destroy()
-   end,
+
+MiscTab:CreateButton({
+    Name = "Copy Current Position (เช็คพิกัดปัจจุบัน)",
+    Callback = function()
+        local pos = plr.Character.HumanoidRootPart.Position
+        local look = plr.Character.HumanoidRootPart.CFrame.LookVector
+        -- แสดงพิกัดในรูปแบบ CFrame ใน Console (F9) และแจ้งเตือน
+        print("Current CFrame: CFrame.new(" .. pos.X .. ", " .. pos.Y .. ", " .. pos.Z .. ")")
+        
+        Rayfield:Notify({
+            Title = "Position Copied!",
+            Content = "พิกัดถูกพิมพ์ไว้ในหน้าต่าง Console (F9) แล้ว",
+            Duration = 5
+        })
+    end
 })
+        
