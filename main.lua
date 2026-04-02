@@ -1,14 +1,15 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+-- ประกาศตัวแปรหลักไว้ด้านบนเพื่อให้เรียกใช้ง่ายและสั้นลง
+local plr = game.Players.LocalPlayer
+local RS = game:GetService("RunService")
+local Net = game:GetService("ReplicatedStorage").Modules.NetworkFramework.NetworkEvent
+
 local Window = Rayfield:CreateWindow({
-   Name = "DAWAWIN HUB | SOME TOWN Admin", -- เอาอิโมจิออกเพื่อความสะอาดตา
+   Name = "DAWAWIN HUB | SOME TOWN",
    LoadingTitle = "SOME TOWN",
    LoadingSubtitle = "by 1_F0",
-   ConfigurationSaving = {
-      Enabled = false,
-      FolderName = nil, 
-      FileName = "DAWAWAWIN_HUB"
-   },
+   ConfigurationSaving = { Enabled = false },
    Discord = {
       Enabled = true,
       Invite = "YGG4BnHcg", 
@@ -16,9 +17,9 @@ local Window = Rayfield:CreateWindow({
    },
    KeySystem = true,
    KeySettings = {
-      Title = "Key | DAWAWAWIN HUB",
-      Subtitle = "Key System",
-      Note = "Key In Discord Server",
+      Title = "Key System",
+      Subtitle = "Key In Discord",
+      Note = "Get key from our discord server",
       FileName = "DAWAWAWINHUB1",
       SaveKey = false, 
       GrabKeyFromSite = true,
@@ -26,25 +27,9 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
--- ==================== Home Tab ====================
--- ใช้ไอคอน "home" แทนอิโมจิ 🏠
+-- ==================== Home Tab (ไอคอนหน้าหลัก) ====================
 local MainTab = Window:CreateTab("Home", "home") 
 local MainSection = MainTab:CreateSection("Local Player")
-
-Rayfield:Notify({
-   Title = "Script Executed!",
-   Content = "Welcome to DAWAWIN HUB for Some Town",
-   Duration = 5,
-   Image = 13047715178,
-   Actions = {
-      Ignore = {
-         Name = "Okay!",
-         Callback = function()
-            print("User acknowledged notification")
-         end
-      },
-   },
-})
 
 local InfJumpToggle = MainTab:CreateToggle({
    Name = "Infinite Jump",
@@ -54,156 +39,119 @@ local InfJumpToggle = MainTab:CreateToggle({
       _G.infinjump = Value
       if Value and _G.infinJumpStarted == nil then
          _G.infinJumpStarted = true
-         game.StarterGui:SetCore("SendNotification", {Title="DAWAWIN Hub"; Text="Infinite Jump Ready!"; Duration=5;})
-         local plr = game:GetService('Players').LocalPlayer
-         local m = plr:GetMouse()
-         m.KeyDown:connect(function(k)
-            if _G.infinjump then
-               if k:byte() == 32 then
-                  local humanoid = game:GetService'Players'.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
-                  humanoid:ChangeState('Jumping')
-                  wait()
-                  humanoid:ChangeState('Seated')
-               end
+         RS.RenderStepped:Connect(function()
+            if _G.infinjump and game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+               plr.Character:FindFirstChildOfClass('Humanoid'):ChangeState('Jumping')
             end
          end)
       end
    end,
 })
 
-local SliderWS = MainTab:CreateSlider({
-   Name = "WalkSpeed Slider",
+MainTab:CreateSlider({
+   Name = "WalkSpeed",
    Range = {16, 350},
    Increment = 1,
-   Suffix = "Speed",
    CurrentValue = 16,
-   Flag = "sliderws",
+   Flag = "WS",
    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        plr.Character.Humanoid.WalkSpeed = Value
    end,
 })
 
-local SliderJP = MainTab:CreateSlider({
-   Name = "JumpPower Slider",
+MainTab:CreateSlider({
+   Name = "JumpPower",
    Range = {50, 350},
    Increment = 1,
-   Suffix = "Power",
    CurrentValue = 50,
-   Flag = "sliderjp",
+   Flag = "JP",
    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+        plr.Character.Humanoid.JumpPower = Value
    end,
 })
 
--- ==================== Admin Panel Tab ====================
--- ใช้ไอคอน "shield" (โล่) แทนอิโมจิ 🛡️
+-- ==================== Admin Panel Tab (ไอคอนโล่) ====================
 local AdminTab = Window:CreateTab("Admin Panel", "shield") 
 local AdminSection = AdminTab:CreateSection("Player Controls")
 
-local NoclipToggle = AdminTab:CreateToggle({
-   Name = "Noclip (เดินทะลุกำแพง)",
+AdminTab:CreateToggle({
+   Name = "Noclip (เดินทะลุ)",
    CurrentValue = false,
    Flag = "Noclip",
    Callback = function(Value)
       _G.Noclip = Value
-      local player = game.Players.LocalPlayer
-      game:GetService("RunService").Stepped:Connect(function()
-         if _G.Noclip then
-            for _, v in pairs(player.Character:GetDescendants()) do
-               if v:IsA("BasePart") then
-                  v.CanCollide = false
-               end
+      RS.Stepped:Connect(function()
+         if _G.Noclip and plr.Character then
+            for _, v in pairs(plr.Character:GetDescendants()) do
+               if v:IsA("BasePart") then v.CanCollide = false end
             end
          end
       end)
    end,
 })
 
-local TargetPlayerInput = AdminTab:CreateInput({
-   Name = "Teleport to Player (ใส่ชื่อผู้เล่น)",
+AdminTab:CreateInput({
+   Name = "Teleport to Player",
    PlaceholderText = "Username",
-   RemoveTextAfterFocusLost = false,
    Callback = function(Text)
-      local targetPlayer = game.Players:FindFirstChild(Text)
-      if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-         game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
-         Rayfield:Notify({Title = "Teleported", Content = "วาร์ปไปหา " .. Text .. " แล้ว", Duration = 3})
-      else
-         Rayfield:Notify({Title = "Error", Content = "ไม่พบผู้เล่นนี้ในเซิร์ฟเวอร์", Duration = 3})
+      local target = game.Players:FindFirstChild(Text)
+      if target and target.Character then
+         plr.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
       end
    end,
 })
 
-local AdminSection2 = AdminTab:CreateSection("Server Events")
+AdminTab:CreateSection("Server Events")
 
--- ปุ่มใหม่ที่คุณต้องการ (Respawn)
-local RespawnButton = AdminTab:CreateButton({
+AdminTab:CreateButton({
    Name = "Respawn (เกิดใหม่)",
    Callback = function()
-        local args = {
-            [1] = "fire",
-            [3] = "Respawn"
-        }
-        -- ทำการ FireServer ไปยัง RemoteEvent ตามที่คุณระบุ
-        game:GetService("ReplicatedStorage").Modules.NetworkFramework.NetworkEvent:FireServer(unpack(args))
+        Net:FireServer("fire", nil, "Respawn")
    end,
 })
-T2:CreateButton({
-    Name = "Emergency Reset (กลับจุดเกิด)",
+
+AdminTab:CreateButton({
+    Name = "Emergency Reset (กันบัค/ตกแมพ)",
     Callback = function()
-        -- วาร์ปกลับไปจุดที่ปลอดภัย (ลองเช็คพิกัด Spawn จริงๆ อีกทีนะครับ)
-        plr.Character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0) 
-        
-        -- หรือใช้ระบบ Respawn ที่คุณมี
-        local args = {[1] = "fire", [3] = "Respawn"}
-        game:GetService("ReplicatedStorage").Modules.NetworkFramework.NetworkEvent:FireServer(unpack(args))
+        plr.Character.HumanoidRootPart.CFrame = CFrame.new(0, 100, 0) -- วาร์ปขึ้นฟ้ากันเหนียว
+        wait(0.1)
+        Net:FireServer("fire", nil, "Respawn")
     end
 })
 
--- ==================== Teleports Tab ====================
--- ใช้ไอคอน "map" (แผนที่) แทนอิโมจิ 🏝
+-- ==================== Teleports Tab (ไอคอนแผนที่) ====================
 local TPTab = Window:CreateTab("Teleports", "map") 
 local TPSection = TPTab:CreateSection("Locations")
 
-local Button1 = TPTab:CreateButton({
-   Name = "Spawn Point (จุดเกิด)",
+TPTab:CreateButton({
+   Name = "Spawn Point",
    Callback = function()
-        -- ใส่ CFrame ของจุดเกิด
-        print("Teleporting to Spawn")
+        print("TP to Spawn")
    end,
 })
 
-local Button2 = TPTab:CreateButton({
-   Name = "Bank (ธนาคาร)",
+TPTab:CreateButton({
+   Name = "Bank",
    Callback = function()
-        -- ใส่ CFrame ของธนาคาร
-        print("Teleporting to Bank")
+        print("TP to Bank")
    end,
 })
 
--- ==================== Misc Tab ====================
--- ใช้ไอคอน "settings" (ฟันเฟือง) แทนอิโมจิ 🎲
+-- ==================== Misc Tab (ไอคอนฟันเฟือง) ====================
 local MiscTab = Window:CreateTab("Misc", "settings") 
-local MiscSection = MiscTab:CreateSection("Settings & Extras")
 
-local ButtonDestroy = MiscTab:CreateButton({
+MiscTab:CreateButton({
+    Name = "Copy Current Position (เช็คพิกัด F9)",
+    Callback = function()
+        local pos = plr.Character.HumanoidRootPart.Position
+        print("CFrame.new(" .. math.floor(pos.X) .. ", " .. math.floor(pos.Y) .. ", " .. math.floor(pos.Z) .. ")")
+        Rayfield:Notify({Title = "Copied!", Content = "ดูพิกัดได้ที่หน้าต่าง F9", Duration = 3})
+    end
+})
+
+MiscTab:CreateButton({
    Name = "Destroy GUI (ปิดสคริปต์)",
    Callback = function()
         Rayfield:Destroy()
-
-MiscTab:CreateButton({
-    Name = "Copy Current Position (เช็คพิกัดปัจจุบัน)",
-    Callback = function()
-        local pos = plr.Character.HumanoidRootPart.Position
-        local look = plr.Character.HumanoidRootPart.CFrame.LookVector
-        -- แสดงพิกัดในรูปแบบ CFrame ใน Console (F9) และแจ้งเตือน
-        print("Current CFrame: CFrame.new(" .. pos.X .. ", " .. pos.Y .. ", " .. pos.Z .. ")")
-        
-        Rayfield:Notify({
-            Title = "Position Copied!",
-            Content = "พิกัดถูกพิมพ์ไว้ในหน้าต่าง Console (F9) แล้ว",
-            Duration = 5
-        })
-    end
+   end,
 })
-        
